@@ -31,6 +31,34 @@ app.post('/', (req, res) => {
   res.status(200).end();
 });
 
+
+app.post('/webhook',(req,res)=>{
+  const body=req.body;
+
+  if(body.object === 'whatsapp_business_account'){
+    const entry= body.entry?.[0]?.changes?.[0]?.value;
+    const message = entry?.messages?.[0]
+
+    if(message?.type === 'text'){
+    const userText = message.text.body.trim();
+
+      if(userText.startsWith('/invoice')){
+        const parts = userText.split(' ');
+        const price = parts[1];
+        const item = parts.slice(2).join(' ');
+
+        console.log('--- COMMAND DETECTED ---')
+        console.log('Command: INVOICE')'
+        console.log(`amount: ${price}`)
+        console.log(`Product: ${item}`)
+      }
+
+    }
+    res.sendStatus(200);
+  }else{
+    res.sendStatus(404)
+  }
+})
 // Start the server
 app.listen(port, () => {
   console.log(`\nListening on port ${port}\n`);
