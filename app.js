@@ -48,7 +48,7 @@ app.post('/webhook',(req,res)=>{
         const item = parts.slice(2).join(' ');
 
         console.log('--- COMMAND DETECTED ---')
-        console.log('Command: INVOICE')'
+        console.log('Command: INVOICE')
         console.log(`amount: ${price}`)
         console.log(`Product: ${item}`)
       }
