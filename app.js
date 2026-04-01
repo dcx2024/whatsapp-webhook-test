@@ -32,7 +32,7 @@ app.post('/', (req, res) => {
 });
 
 
-app.post('/webhook',(req,res)=>{
+app.post('/',(req,res)=>{
   const body=req.body;
 
   if(body.object === 'whatsapp_business_account'){
