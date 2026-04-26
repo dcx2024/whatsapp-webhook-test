@@ -9,6 +9,7 @@ const initialisePayment=async(req,res)=>{
     try{
         const decoded=jwt.verify(token,process.env.JWT_SECRET)
         console.log('Transaction Processing has Started...')
+        console.log('Decoded whatsapp number', decoded.whatsapp_number)
         const param={
             email:email,
             amount: parseFloat(decoded.amount)*100,
