@@ -49,7 +49,7 @@ const messageListener = async (req, res) => {
             const entry = body.entry?.[0]?.changes?.[0]?.value;
             const message = entry?.messages?.[0];
             const from = message?.from;
-
+                console.log(from)
             if (message?.type === 'text') {
                 const userText = message.text.body.trim();
 
