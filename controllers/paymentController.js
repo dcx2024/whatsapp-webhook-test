@@ -15,7 +15,7 @@ const initialisePayment=async(req,res)=>{
             callack_url:`${process.env.FRONTEND_URL}/verify`,
             metadata:{
                 item_name: decoded.item,
-                whatsapp_number:phoneNumber
+                whatsapp_number:decoded.sellerphone
             }
         }
 
