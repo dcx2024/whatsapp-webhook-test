@@ -12,7 +12,7 @@ const initialisePayment=async(req,res)=>{
         const param={
             email:email,
             amount: parseFloat(decoded.amount)*100,
-            callack_url:`${process.env.FRONTEND_URL}/verify`,
+            //callback_url:`${process.env.FRONTEND_URL}/verify`,
             metadata:{
                 item_name: decoded.item,
                 whatsapp_number:decoded.sellerphone
