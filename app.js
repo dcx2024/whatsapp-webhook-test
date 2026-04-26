@@ -21,7 +21,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }))
 // Routes
 app.use('/api/whatsapp', whatsappRoutes);
 app.post('/paystack/webhook', handleWebhook); 
-app.post('/api/payment',whatsappRoutes)
+app.post('/api/payment',paymentRoutes)
 
 
 
