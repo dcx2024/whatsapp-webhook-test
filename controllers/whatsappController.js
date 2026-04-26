@@ -38,40 +38,44 @@ async function sendWhatsAppMessage(to, text) {
 
 
 const messageListener = async (req, res) => {
-    const body = req.body;
-    const {email, phoneNumber}=req.body;
+    try {
+        const body = req.body;
 
-    if (body.object === 'whatsapp_business_account') {
-        const entry = body.entry?.[0]?.changes?.[0]?.value;
-        const message = entry?.messages?.[0]
-        const from = message?.from;
+        if (body.object === 'whatsapp_business_account') {
+            const entry = body.entry?.[0]?.changes?.[0]?.value;
+            const message = entry?.messages?.[0];
+            const from = message?.from;
 
-        if (message?.type === 'text') {
-            const userText = message.text.body.trim();
+            if (message?.type === 'text') {
+                const userText = message.text.body.trim();
 
-            if (userText.startsWith('/invoice')) {
-                const parts = userText.split(' ');
-                const price = parts[1];
-                const item = parts.slice(2).join(' ');
+                if (userText.startsWith('/invoice')) {
+                    const parts = userText.split(' ');
+                    const price = parts[1];
+                    const item = parts.slice(2).join(' ') || "Product";
 
-                
+                    const paymentToken = jwt.sign({
+                        amount: price,
+                        item: item,
+                        phone: from // Added phone to token so you can use it later
+                    }, JWT_SECRET, { expiresIn: '30m' });
 
-                console.log('--- COMMAND DETECTED ---')
-                console.log('Command: INVOICE')
-                console.log(`amount: ${price}`)
-                console.log(`Product: ${item}`)
+                    // CHANGE THIS TO YOUR ACTUAL FRONTEND URL ONCE DEPLOYED
+                    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+                    const paymenturl = `${frontendUrl}/checkout?token=${paymentToken}`;
 
-
-                const paymentToken=jwt.sign({
-                    amount:price,
-                    item: item,
-
-                }, JWT_SECRET,{expiresIn: '30m'})
-
-                const paymenturl=`http://localhost:5173/checkout?token=${paymentToken}`
-             await sendWhatsAppMessage(from, `Your invoice for ${item} is ready. Total: ₦${price}. Pay here: ${paymenturl}`);
+                    await sendWhatsAppMessage(from, `Your invoice for ${item} is ready. Total: ₦${price}. Pay here: ${paymenturl}`);
+                }
             }
-        }}
+        }
+        // CRITICAL: Always respond to Meta immediately
+        res.sendStatus(200);
+    } catch (error) {
+        console.error("Webhook Error:", error);
+        // Still send 200 so Meta doesn't disable your webhook
+        res.sendStatus(200); 
+    }
+
         
       
 }
