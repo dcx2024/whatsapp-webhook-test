@@ -65,7 +65,7 @@ const messageListener = async (req, res) => {
                     const paymentToken = jwt.sign({
                         amount: price,
                         item: item,
-                        phone: from 
+                        sellerphone: from 
                     }, JWT_SECRET, { expiresIn: '30m' });
 
                     // Use FRONTEND_URL from env, fallback to localhost for dev
