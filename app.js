@@ -7,12 +7,12 @@ const { handleWebhook } = require('./verifyPayment'); // Import the webhook hand
 const paymentRoutes=require('./routes/paymentRoutes')
 
 const app = express();
-app.use(cors({
+/*app.use(cors({
     origin: 'http://localhost:5173', // Your React App's Origin
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning'],
     credentials: true
-}));
+}));*/
 app.use(express.json());
 
 const port = process.env.PORT || 3000;
