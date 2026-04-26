@@ -15,7 +15,7 @@ const initialisePayment=async(req,res)=>{
             //callback_url:`${process.env.FRONTEND_URL}/verify`,
             metadata:{
                 item_name: decoded.item,
-                sellerphone:decoded.sellerphone
+                whatsapp_number: decoded.whatsapp_number
             }
         }
 
