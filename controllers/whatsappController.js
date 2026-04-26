@@ -1,26 +1,28 @@
-const crypto = require('node:crypto')
-const jwt = require('jsonwebtoken')
+const crypto = require('node:crypto');
+const jwt = require('jsonwebtoken');
+const axios = require('axios'); // Added missing import
 require('dotenv').config();
-const { initializeTransaction } = require('../payment')
-const JWT_SECRET=process.env.JWT_SECRET;
-const verifyToken = process.env.VERIFY_TOKEN;
+
+const { initializeTransaction } = require('../payment');
+
+const JWT_SECRET = process.env.JWT_SECRET;
+const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 
 const whatsappChallenge = async (req, res) => {
     const { 'hub.mode': mode, 'hub.challenge': challenge, 'hub.verify_token': token } = req.query;
 
     if (mode === 'subscribe' && token === verifyToken) {
         console.log('WEBHOOK VERIFIED');
-        res.status(200).send(challenge);
-    } else {
-        res.status(403).end();
+        return res.status(200).send(challenge);
     }
+    return res.status(403).end();
 };
 
 async function sendWhatsAppMessage(to, text) {
     try {
         await axios({
             method: "POST",
-            url: `https://graph.facebook.com/v18.0/1033168876553714/messages`,
+            url: `https://graph.facebook.com/v18.0/${process.env.PHONE_NUMBER_ID}/messages`, // Use env for ID
             data: {
                 messaging_product: "whatsapp",
                 to: to,
@@ -36,8 +38,10 @@ async function sendWhatsAppMessage(to, text) {
     }
 }
 
-
 const messageListener = async (req, res) => {
+    // Send 200 immediately to prevent Meta timeouts
+    res.sendStatus(200);
+
     try {
         const body = req.body;
 
@@ -54,13 +58,17 @@ const messageListener = async (req, res) => {
                     const price = parts[1];
                     const item = parts.slice(2).join(' ') || "Product";
 
+                    if (!price || isNaN(price)) {
+                        return await sendWhatsAppMessage(from, "Invalid format. Use: /invoice [amount] [item]");
+                    }
+
                     const paymentToken = jwt.sign({
                         amount: price,
                         item: item,
-                        phone: from // Added phone to token so you can use it later
+                        phone: from 
                     }, JWT_SECRET, { expiresIn: '30m' });
 
-                    // CHANGE THIS TO YOUR ACTUAL FRONTEND URL ONCE DEPLOYED
+                    // Use FRONTEND_URL from env, fallback to localhost for dev
                     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
                     const paymenturl = `${frontendUrl}/checkout?token=${paymentToken}`;
 
@@ -68,18 +76,9 @@ const messageListener = async (req, res) => {
                 }
             }
         }
-        // CRITICAL: Always respond to Meta immediately
-        res.sendStatus(200);
     } catch (error) {
-        console.error("Webhook Error:", error);
-        // Still send 200 so Meta doesn't disable your webhook
-        res.sendStatus(200); 
+        console.error("Webhook processing error:", error.message);
     }
+};
 
-        
-      
-}
-
-module.exports = { whatsappChallenge, messageListener }
-
-
+module.exports = { whatsappChallenge, messageListener };
