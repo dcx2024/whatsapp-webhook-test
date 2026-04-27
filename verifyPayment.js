@@ -47,35 +47,35 @@ async function sendOTPMessage(to, otp) {
 
 
 const handleWebhook = async (req, res) => {
-        const signature = req.headers['x-paystack-signature'];
-        const secret = process.env.PAYSTACK_SECRET_KEY; // Use .env 
+            const signature = req.headers['x-paystack-signature'];
+            const secret = process.env.PAYSTACK_SECRET_KEY; // Use .env 
 
-        const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(req.body)).digest('hex');
+            const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(req.body)).digest('hex');
 
-        if (hash !== signature) {
-            return res.status(401).send('Invalid Signature');
-        }
-
-        const { event, data } = req.body;
-
-        if (event === 'charge.success') {
-            const sellerPhone = data.metadata?.whatsapp_number;
-            const customerPhone=data.metadata?.customer_phone
-            const itemName = data.metadata?.item_name;
-            const otp = data.metadata?.otp_code;
-            const reference = data.reference;
-            const amount = data.amount / 100; // Convert kobo to Naira
-
-            if (sellerPhone) {
-                const messageText = `✅ *Payment Received!*\n\nRef: ${reference}\nItem: ${itemName}\nAmount: ₦${amount.toLocaleString()} This i syour otp ${otp}`;
-                await sendWhatsAppMessage(sellerPhone, messageText);
+            if (hash !== signature) {
+                return res.status(401).send('Invalid Signature');
             }
 
-            if(customerPhone){
-                await sendOTPMessage(customerPhone,otp)
+            const { event, data } = req.body;
+
+            if (event === 'charge.success') {
+                const sellerPhone = data.metadata?.whatsapp_number;
+                const customerPhone=data.metadata?.customer_phone
+                const itemName = data.metadata?.item_name;
+                const otp = data.metadata?.otp_code;
+                const reference = data.reference;
+                const amount = data.amount / 100; // Convert kobo to Naira
+
+                if (sellerPhone) {
+                    const messageText = `✅ *Payment Received!*\n\nRef: ${reference}\nItem: ${itemName}\nAmount: ₦${amount.toLocaleString()}`;
+                    await sendWhatsAppMessage(sellerPhone, messageText);
+                }
+
+                if(customerPhone){
+                    await sendOTPMessage(customerPhone,otp)
+                }
             }
-        }
-        res.sendStatus(200);
+            res.sendStatus(200);
     };
 
     module.exports = { handleWebhook };
