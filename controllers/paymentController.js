@@ -1,13 +1,20 @@
 require('dotenv').config;
 const jwt=require('jsonwebtoken')
+const crypto=require('node:crypto')
 const JWT_SECRET=process.env.JWT_SECRET;
 const { initializeTransaction } = require('../payment')
+
+
+function generateOTP(){
+    return crypto.randomInt(100000,999999).toString();
+}
 
 const initialisePayment=async(req,res)=>{
     const {email,phoneNumber,token}=req.body
 
     try{
         const decoded=jwt.verify(token,process.env.JWT_SECRET)
+        const otp=generateOTP();
         console.log('Transaction Processing has Started...')
         console.log('Decoded whatsapp number', decoded.whatsapp_number)
         const param={
@@ -16,7 +23,9 @@ const initialisePayment=async(req,res)=>{
             //callback_url:`${process.env.FRONTEND_URL}/verify`,
             metadata:{
                 item_name: decoded.item,
-                whatsapp_number: decoded.whatsapp_number
+                whatsapp_number: decoded.whatsapp_number,
+                customer_phone: phoneNumber,
+                otp_code: otp
             }
         }
 
