@@ -11,7 +11,8 @@ function generateOTP(){
 
 const initialisePayment=async(req,res)=>{
     const {email,phoneNumber,token}=req.body
-
+//use paystack refernece store it in a pending orders table as well as delovery status,amount,expires at,opt_hash,order_id,transfer_recipient(gotten using the seller phone no)
+//save in the 
     try{
         const decoded=jwt.verify(token,process.env.JWT_SECRET)
         const otp=generateOTP();

@@ -43,32 +43,40 @@ function paystackRequest({ method, path, params = {} }, secretKey) {
     })
 }
 
-    function initializeTransaction(secretKey, params) {
-        return paystackRequest({
-            method: 'POST',
-            path: '/transaction/initialize',
-            params
-        }, secretKey)
-    }
+function initializeTransaction(secretKey, params) {
+    return paystackRequest({
+        method: 'POST',
+        path: '/transaction/initialize',
+        params
+    }, secretKey)
+}
 
-    function fetchBanks(secretKey) {
-        return paystackRequest({
-            method: 'GET',
-            path: '/bank'
-        }, secretKey)
-    }
+function fetchBanks(secretKey) {
+    return paystackRequest({
+        method: 'GET',
+        path: '/bank'
+    }, secretKey)
+}
 
-    function confirmAccount(secretKey, acctNumber, bankCode) {
-        const query = `/bank/resolve?account_number=${encodeURIComponent(acctNumber)}&bank_code=${encodeURIComponent(bankCode)}`;
-        return paystackRequest({
-            method: 'GET',
-            path: query
-        }, secretKey);
-    }
+function confirmAccount(secretKey, acctNumber, bankCode) {
+    const query = `/bank/resolve?account_number=${encodeURIComponent(acctNumber)}&bank_code=${encodeURIComponent(bankCode)}`;
+    return paystackRequest({
+        method: 'GET',
+        path: query
+    }, secretKey);
+}
+
+function createTransferRecipient(secretKey, params) {
+    return paystackRequest({
+        method: 'POST',
+        path: '/transferrecipient'
+    },secretKey)
+}
 
 
-module.exports={
+module.exports = {
     initializeTransaction,
     fetchBanks,
-    confirmAccount
+    confirmAccount,
+    createTransferRecipient
 }
