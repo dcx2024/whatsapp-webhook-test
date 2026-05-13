@@ -18,6 +18,8 @@ const initialisePayment=async(req,res)=>{
         const otp=generateOTP();
         console.log('Transaction Processing has Started...')
         console.log('Decoded whatsapp number', decoded.whatsapp_number)
+        //fetch the transfer_recipient code from the database using the seller phone no
+        //store it in the orders database
         const param={
             email:email,
             amount: parseFloat(decoded.amount)*100,
