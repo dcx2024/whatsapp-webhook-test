@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const axios = require('axios');
-
+const seller=require('./models/userModel')
 async function sendWhatsAppMessage(to, text) {
     try {
         await axios({
@@ -57,7 +57,8 @@ const handleWebhook = async (req, res) => {
             }
 
             const { event, data } = req.body;
-
+//get transer_recipient form seller phone no            
+           
             if (event === 'charge.success') {
                 const sellerPhone = data.metadata?.whatsapp_number;
                 const customerPhone=data.metadata?.customer_phone
@@ -65,6 +66,7 @@ const handleWebhook = async (req, res) => {
                 const otp = data.metadata?.otp_code;
                 const reference = data.reference;
                 const amount = data.amount / 100; // Convert kobo to Naira
+                 const recipientcode=seller.getTransferRecipientCode(customerPhone)
 
                 if (sellerPhone) {
                     const messageText = `✅ *Payment Received!*\n\nRef: ${reference}\nItem: ${itemName}\nAmount: ₦${amount.toLocaleString()}`;
