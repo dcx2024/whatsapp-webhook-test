@@ -9,7 +9,7 @@ const Seller={
     },
 
     async getTransferRecipientCode(phone_no){
-        const recipientcode=await db(TABLE).select('transfer_recipient').where(phone_no)
+        const recipientcode=await db(TABLE).select('transfer_recipient').where({phone_no})
         return recipientcode
     }
 }

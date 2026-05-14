@@ -23,7 +23,7 @@ async function sendWhatsAppMessage(to, text) {
 
 async function sendOTPMessage(to, otp) {
     try {
-        const url = 'http://192.168.216.208:8080/message';
+        const url = 'https://api.sms-gate.app/3rdparty/v1/message';
 
         const payload = {
             textMessage: {
@@ -39,7 +39,7 @@ async function sendOTPMessage(to, otp) {
             }
         });
 
-        console.log('OTP Server Response:', response.data);
+        console.log('Cloud OTP Server Response:', response.data);
     } catch (error) {
         console.error('OTP Send Error:', error.response ? error.response.data : error.message);
     }
@@ -66,7 +66,7 @@ const handleWebhook = async (req, res) => {
                 const otp = data.metadata?.otp_code;
                 const reference = data.reference;
                 const amount = data.amount / 100; // Convert kobo to Naira
-                 const recipientcode=seller.getTransferRecipientCode(customerPhone)
+                 const recipientcode=seller.getTransferRecipientCode(sellerPhone)
 
                 if (sellerPhone) {
                     const messageText = `✅ *Payment Received!*\n\nRef: ${reference}\nItem: ${itemName}\nAmount: ₦${amount.toLocaleString()}`;

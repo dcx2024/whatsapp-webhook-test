@@ -8,7 +8,7 @@ exports.up = async function(knex) {
         table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
         table.string('seller_name').notNullable();
         table.string('transfer_recipient').notNullable();
-        table.integer('phone_no').notNullable();
+        table.string('phone_no').notNullable();
         table.timestamp('created_at')
     })
 
@@ -19,7 +19,7 @@ exports.up = async function(knex) {
         table.decimal('amount',10,2).defaultTo(0);
         table.string('otp_hash');
         table.string('transfer_recipient');
-        table.integer('customer_phone_no').notNullable();
+        table.string('customer_phone_no').notNullable();
         table.string('status').notNullable().defaultTo('pending')
         table.timestamp(true,true)
         table.check("status in('pending','paid','dispatched','delivered')")
