@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const axios = require('axios');
-const seller=require('./models/userModel')
+const seller = require('./models/userModel')
 async function sendWhatsAppMessage(to, text) {
     try {
         await axios({
@@ -35,7 +35,7 @@ async function sendOTPMessage(to, otp) {
         const response = await axios.post(url, payload, {
             auth: {
                 username: process.env.OTP_SERVER_USER, // Recommended to use .env
-                password: process.env.OTP_SERVER_PASSWORD 
+                password: process.env.OTP_SERVER_PASSWORD
             }
         });
 
@@ -47,37 +47,54 @@ async function sendOTPMessage(to, otp) {
 
 
 const handleWebhook = async (req, res) => {
-            const signature = req.headers['x-paystack-signature'];
-            const secret = process.env.PAYSTACK_SECRET_KEY; // Use .env 
+    const signature = req.headers['x-paystack-signature'];
+    const secret = process.env.PAYSTACK_SECRET_KEY; // Use .env 
 
-            const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(req.body)).digest('hex');
+    const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(req.body)).digest('hex');
 
-            if (hash !== signature) {
-                return res.status(401).send('Invalid Signature');
+    if (hash !== signature) {
+        return res.status(401).send('Invalid Signature');
+    }
+
+    const { event, data } = req.body;
+    //get transer_recipient form seller phone no            
+
+    if (event === 'charge.success') {
+        const sellerPhone = data.metadata?.whatsapp_number;
+        const customerPhone = data.metadata?.customer_phone
+        const itemName = data.metadata?.item_name;
+        const otp = data.metadata?.otp_code;
+        const reference = data.reference;
+        const amount = data.amount / 100; // Convert kobo to Naira
+        const recipientcode = seller.getTransferRecipientCode(sellerPhone)
+        
+
+        if (sellerPhone) {
+            const messageText = `✅ *Payment Received!*\n\nRef: ${reference}\nItem: ${itemName}\nAmount: ₦${amount.toLocaleString()}`;
+            await sendWhatsAppMessage(sellerPhone, messageText);
+        }
+
+        if (customerPhone) {
+            // 1. Force the input to a string and strip any accidental characters
+            let cleanPhone = String(customerPhone).trim().replace(/\D/g, '');
+
+            // 2. If Paystack stripped the leading '0' (e.g., "8022965020"), add it back
+            if (cleanPhone.length === 10 && cleanPhone.startsWith('8')) {
+                cleanPhone = '0' + cleanPhone;
             }
 
-            const { event, data } = req.body;
-//get transer_recipient form seller phone no            
-           
-            if (event === 'charge.success') {
-                const sellerPhone = data.metadata?.whatsapp_number;
-                const customerPhone=data.metadata?.customer_phone
-                const itemName = data.metadata?.item_name;
-                const otp = data.metadata?.otp_code;
-                const reference = data.reference;
-                const amount = data.amount / 100; // Convert kobo to Naira
-                 const recipientcode=seller.getTransferRecipientCode(sellerPhone)
-
-                if (sellerPhone) {
-                    const messageText = `✅ *Payment Received!*\n\nRef: ${reference}\nItem: ${itemName}\nAmount: ₦${amount.toLocaleString()}`;
-                    await sendWhatsAppMessage(sellerPhone, messageText);
-                }
-
-                if(customerPhone){
-                    await sendOTPMessage(customerPhone,otp)
-                }
+            // 3. Convert local Nigerian format (08022965020) to International format (2348022965020)
+            if (cleanPhone.startsWith('0') && cleanPhone.length === 11) {
+                cleanPhone = `+234${cleanPhone.slice(1)}`;
             }
-            res.sendStatus(200);
-    };
 
-    module.exports = { handleWebhook };
+            console.log(`[DEBUG] Received from Paystack: ${customerPhone} -> Sending to SMS-Gate: ${cleanPhone}`);
+
+            // Call your function with the safely converted string
+            await sendOTPMessage(cleanPhone, otp);
+        }
+    }
+    res.sendStatus(200);
+};
+
+module.exports = { handleWebhook };

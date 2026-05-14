@@ -9,7 +9,7 @@ const Order={
     },
 
     async updateStatus(id,updates){
-        const [order]= await db(TABLE).where(id).update(updates).returning("*")
+        const [order]= await db(TABLE).where('id',id).update(updates).returning("*")
         return order
     },
 

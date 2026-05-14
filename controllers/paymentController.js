@@ -3,13 +3,15 @@ const jwt = require('jsonwebtoken')
 const crypto = require('node:crypto')
 const bcrypt = require('bcrypt')
 const JWT_SECRET = process.env.JWT_SECRET;
-const { initializeTransaction } = require('../payment')
+const { initializeTransaction,fetchBanks } = require('../payment')
 const order = require('../models/orderModel')
 const user = require('../models/userModel')
 
 function generateOTP() {
     return crypto.randomInt(100000, 999999).toString();
 }
+
+const secretKey=process.env.PAYSTACK_SECRET_KEY
 
 const initialisePayment = async (req, res) => {
     const { email, phoneNumber, token } = req.body
@@ -73,4 +75,30 @@ const initialisePayment = async (req, res) => {
 }
 
 
-module.exports = { initialisePayment }
+const sellerPayments=async(req,res)=>{
+    try{
+        console.log("--New payout initiated")
+        //logging how the order sttausses change
+    }catch{
+
+    }
+}
+
+const getBanks = async (req, res) => {
+  try {
+    const getBanksResponse = await fetchBanks(secretKey)
+
+    const Banks = getBanksResponse.data.map(bank => ({
+      name: bank.name,
+      code: bank.code
+    }));
+
+    return res.status(200).json({ message: 'Banks fetched successfully', banks: Banks })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({ message: "An error occurred while fetching banks" })
+  }
+}
+
+
+module.exports = { initialisePayment,getBanks }

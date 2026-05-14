@@ -5,7 +5,8 @@ const axios = require('axios')
 const whatsappRoutes = require('./routes/whatsappRoute');
 const { handleWebhook } = require('./verifyPayment'); // Import the webhook handler
 const paymentRoutes=require('./routes/paymentRoutes')
-
+const otproutes=require('./routes/otpRoutes')
+const userRoute=require('./routes/userRoute')
 const app = express();
 app.use(cors({
     origin: 'http://localhost:5173', // Your React App's Origin
@@ -22,6 +23,8 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }))
 app.use('/api/whatsapp', whatsappRoutes);
 app.post('/paystack/webhook', handleWebhook); 
 app.use('/api/payment',paymentRoutes)
+app.use('/api/otp',otproutes)
+app.use('/api/seller',userRoute)
 
 
 
