@@ -1,6 +1,6 @@
 const {confirmAccount,
     createTransferRecipient} =require('../payment')
-    const seller=require("../models/userModel")
+    const seller=require("../../models/userModel")
 
 const userHandler = async (req, res) => {
     try {
