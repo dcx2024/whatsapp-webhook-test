@@ -1,0 +1,33 @@
+services:
+  db:
+    image: mariadb:10.11
+    container_name: sms-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: sms_db
+      MYSQL_USER: sms_user
+      MYSQL_PASSWORD: your_password
+      MYSQL_ROOT_PASSWORD: root_password_here
+    volumes:
+      - ./db_data:/var/lib/mysql
+
+  server:
+    image: ghcr.io/android-sms-gateway/server:latest
+    container_name: sms-server
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config.yml:/app/config.yml
+    depends_on:
+      - db
+
+  worker:
+    image: ghcr.io/android-sms-gateway/server:latest
+    container_name: sms-worker
+    restart: always
+    command: /app/app worker
+    volumes:
+      - ./config.yml:/app/config.yml
+    depends_on:
+      - db
