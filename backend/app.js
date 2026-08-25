@@ -26,7 +26,7 @@ app.use('/api/payment',paymentRoutes)
 app.use('/api/otp',otproutes)
 app.use('/api/seller',userRoute)
 
-console.log(process.env.DATABASE_URL)
+
 
 
 app.listen(port, () => {
