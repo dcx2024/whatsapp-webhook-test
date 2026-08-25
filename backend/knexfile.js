@@ -16,7 +16,7 @@ module.exports = {
       ssl: { rejectUnauthorized: false }
     }
   },
-
+//test
   staging: {
     client: 'postgresql',
     connection: {
