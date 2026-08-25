@@ -15,8 +15,10 @@ module.exports = {
       port:5432,
       ssl: { rejectUnauthorized: false }
     }*/
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    connection: {
+      connectionString: process.env.DATABASE_URL,
+      ssl: {rejectUnauthorized: false}
+    }
   },
 //test
   staging: {
