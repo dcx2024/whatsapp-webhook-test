@@ -3,14 +3,15 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import PaymentStatusCard from './components/PaymentStatusCard';
 import DeliveryVerificationCard from './components/DeliveryVerificationCard';
 import PaymentForm from './components/PaymentForm';
+import Homepage from './pages/Homepage';
 
 const App = () => {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100 p-4">
+      <div className="">
         <Routes>
           {/* Default view */}
-          <Route path="/" element={<PaymentStatusCard />} />
+          <Route path="/" element={<Homepage />} />
           
           {/* Corrected Checkout Route: 
               Don't add "?token" here. The PaymentForm 
