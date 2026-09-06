@@ -1,6 +1,11 @@
 import React from 'react';
-
+import { useNavigate } from 'react-router-dom';
 const Navbar = () => {
+  const navigate=useNavigate();
+
+  const handleClick=()=>{
+    navigate('/seller-reg')
+  }
   return (
     <section className="flex justify-between items-center p-4">
       <img src="" alt="Logo" className="w-10 h-10 bg-gray-200" /> 
@@ -22,7 +27,7 @@ const Navbar = () => {
 
       <div className="flex gap-4 items-center">
         <button className="font-medium hover:text-gray-600 transition-colors">Login</button>
-        <button className="bg-primary text-white px-4 py-2 rounded font-medium hover:opacity-90 transition-opacity">
+        <button className="bg-primary text-white px-4 py-2 rounded font-medium hover:opacity-90 transition-opacity" onClick={handleClick}>
           Register
         </button>
       </div>

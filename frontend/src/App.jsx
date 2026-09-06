@@ -4,6 +4,7 @@ import PaymentStatusCard from './components/PaymentStatusCard';
 import DeliveryVerificationCard from './components/DeliveryVerificationCard';
 import PaymentForm from './components/PaymentForm';
 import Homepage from './pages/Homepage';
+import SellerRegistration from './components/forms/SellerRegistration';
 
 const App = () => {
   return (
@@ -12,7 +13,7 @@ const App = () => {
         <Routes>
           {/* Default view */}
           <Route path="/" element={<Homepage />} />
-          
+          <Route path="/seller-reg" element={<SellerRegistration/>}/>
           {/* Corrected Checkout Route: 
               Don't add "?token" here. The PaymentForm 
               already reads it from the URL.

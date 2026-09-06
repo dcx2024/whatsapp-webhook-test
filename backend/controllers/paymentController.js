@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const crypto = require('node:crypto')
 const bcrypt = require('bcrypt')
 const JWT_SECRET = process.env.JWT_SECRET;
-const { initializeTransaction,fetchBanks } = require('../payment')
+const { initializeTransaction,fetchBanks,confirmAccount } = require('../payment')
 const order = require('../models/orderModel')
 const user = require('../models/userModel')
 
@@ -100,5 +100,34 @@ const getBanks = async (req, res) => {
   }
 }
 
+const verifyAccount = async (req, res) => {
+    // FIXED: changed 'Request' to 'req' and updated variable matching
+    const { acctNumber, bankCode } = req.body; 
+    
+    if (!acctNumber || !bankCode) {
+        return res.status(400).json({ message: 'Account number and bank code are required' });
+    }
 
-module.exports = { initialisePayment,getBanks }
+    try {
+        // NOTE: Make sure your secretKey is defined here (e.g., from process.env)
+        const secretKey = process.env.PAYSTACK_SECRET_KEY; 
+        
+        const verified = await confirmAccount(secretKey, acctNumber, bankCode);
+        
+        // Paystack returns { status: true, data: { account_name: "..." } } on success
+        if (verified.status) {
+            return res.status(200).json({ 
+                message: 'Account verified', 
+                accountName: verified.data.account_name 
+            });
+        } else {
+            return res.status(400).json({ message: verified.message });
+        }
+    } catch (error) {
+        console.error("Account verification failed:", error);
+        return res.status(500).json({ message: "Failed to verify account with the payment provider." });
+    }
+}
+
+
+module.exports = { initialisePayment,getBanks,verifyAccount }
