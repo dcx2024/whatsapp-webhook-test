@@ -7,6 +7,8 @@ exports.up = async function(knex) {
     await knex.schema.createTable('sellers', table=>{
         table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
         table.string('seller_name').notNullable();
+        table.string('full_name').notNullable();
+        table.string('email').notNullable();
         table.string('transfer_recipient').notNullable();
         table.string('phone_no').notNullable();
         table.timestamp('created_at')
