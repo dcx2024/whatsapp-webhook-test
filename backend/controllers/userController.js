@@ -4,7 +4,7 @@ const {confirmAccount,
 
 const userHandler = async (req, res) => {
     try {
-        const { full_name,business_name, account_no,email,phone_no, bank_code } = req.body;
+        const { full_name,business_name,account_no,email,phone_no,bank_code } = req.body;
         
         // 1. Always verify before proceeding
        /* const confirmed = await confirmAccount(process.env.PAYSTACK_SECRET_KEY, account_no, bank_code);

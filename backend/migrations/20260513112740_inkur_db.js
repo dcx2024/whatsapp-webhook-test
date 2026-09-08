@@ -39,10 +39,3 @@ exports.down = async function(knex) {
 
 
 
-ami-0b1161e6982092e4d
-
-vpc-05943ab41b91df494
-
-"GroupId": "sg-0caa3c182730ecdb9",
-
-    3.250.30.35/32

@@ -7,12 +7,14 @@ const SellerRegistration = () => {
     const [banks, setBanks] = useState([]);
     const [selectedBank, setSelectedBank] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // NEW STATES: Handle verification status, account name, and errors
+    // Verify states
     const [isVerifying, setIsVerifying] = useState(false);
     const [accountName, setAccountName] = useState('');
     const [verificationError, setVerificationError] = useState('');
-    // NEW: State to toggle password visibility
+
+    // Password toggle state
     const [showPassword, setShowPassword] = useState(false);
 
     // Fetch banks on component mount
@@ -30,12 +32,12 @@ const SellerRegistration = () => {
     }, []);
 
     const [formData, setFormData] = useState({
-        fullName: '',
-        businessName: '',
+        full_name: '',
+        business_name: '',
         email: '',
-        phone: '',
+        phone_no: '',
         password: '',
-        acct_no: ''
+        account_no: ''
     });
 
     const handleChange = (e) => {
@@ -45,51 +47,68 @@ const SellerRegistration = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
 
         const finalSubmissionData = {
             ...formData,
-            bank: selectedBank
+            bank_code: selectedBank,
+            accountName: accountName
         };
 
         console.log("Submitting seller data:", finalSubmissionData);
-        // TODO: Send finalSubmissionData to your backend API here
 
-        navigate('/dashboard');
+        try {
+            const response = await fetch('http://localhost:3000/api/seller/register-seller', { // Adjust endpoint as needed
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(finalSubmissionData)
+            });
+
+            if (response.ok) {
+                navigate('/dashboard');
+            } else {
+                const data = await response.json();
+                console.error("Registration failed:", data.message);
+                alert(data.message || "Registration failed.");
+            }
+        } catch (error) {
+            console.error("Error submitting form:", error);
+        }
     };
 
     const verifyAcct = async (e) => {
         e.preventDefault();
 
-        // 1. Basic validation before making the request
-        if (!formData.acct_no || !selectedBank) {
+        if (!formData.account_no || !selectedBank) {
             setVerificationError("Please enter an account number and select a bank.");
             return;
         }
 
-        // 2. Set loading states and clear previous results
         setIsVerifying(true);
         setVerificationError('');
         setAccountName('');
 
         try {
-            // 3. Make the API request to your backend controller
-            // Note: Update the URL port/path if your verify route is named differently
-            const response = await fetch('http://localhost:3000/api/payment/verifyaccount', {
+            const response = await fetch('http://localhost:3000/api/payment/verifyAccount', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    acctNumber: formData.acct_no,
+                    acctNumber: formData.account_no,
                     bankCode: selectedBank
                 })
             });
 
             const data = await response.json();
 
-            // 4. Handle success or error based on the response status
             if (response.ok) {
                 setAccountName(data.accountName);
             } else {
@@ -99,7 +118,7 @@ const SellerRegistration = () => {
             console.error("Account verification failed:", error);
             setVerificationError("A network error occurred. Please try again.");
         } finally {
-            setIsVerifying(false); // 5. Stop the loading spinner
+            setIsVerifying(false);
         }
     };
 
@@ -116,8 +135,8 @@ const SellerRegistration = () => {
                     <input
                         type="text"
                         id="fullName"
-                        name="fullName"
-                        value={formData.fullName}
+                        name="full_name"
+                        value={formData.full_name}
                         onChange={handleChange}
                         className='w-full border border-gray-300 p-2 rounded-md'
                         required
@@ -129,8 +148,8 @@ const SellerRegistration = () => {
                     <input
                         type="text"
                         id="businessName"
-                        name="businessName"
-                        value={formData.businessName}
+                        name="business_name"
+                        value={formData.business_name}
                         onChange={handleChange}
                         className='w-full border border-gray-300 p-2 rounded-md'
                         required
@@ -155,8 +174,8 @@ const SellerRegistration = () => {
                     <input
                         type="tel"
                         id="phone"
-                        name="phone"
-                        value={formData.phone}
+                        name="phone_no"
+                        value={formData.phone_no}
                         onChange={handleChange}
                         className='w-full border border-gray-300 p-2 rounded-md'
                         required
@@ -168,8 +187,8 @@ const SellerRegistration = () => {
                     <input
                         type="text"
                         id="account_no"
-                        name="acct_no"
-                        value={formData.acct_no}
+                        name="account_no"
+                        value={formData.account_no}
                         onChange={handleChange}
                         className='w-full border border-gray-300 p-2 rounded-md'
                         required
@@ -201,20 +220,16 @@ const SellerRegistration = () => {
 
                 <div className='flex flex-col items-start w-full'>
                     <label htmlFor="password" className='text-sm font-medium mb-1'>Password</label>
-                    {/* UPDATED: Wrapper div for relative positioning */}
                     <div className="relative w-full">
                         <input
-                            // UPDATED: Toggle between 'text' and 'password'
                             type={showPassword ? "text" : "password"}
                             id="password"
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
-                            // Added 'pr-16' so text doesn't hide behind the button
                             className='w-full border border-gray-300 p-2 pr-16 rounded-md'
                             required
                         />
-                        {/* NEW: Toggle Button */}
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
@@ -224,6 +239,7 @@ const SellerRegistration = () => {
                         </button>
                     </div>
                 </div>
+
                 {/* --- Verification Status Messages --- */}
                 {accountName && (
                     <div className='w-full p-3 bg-green-50 text-green-700 border border-green-200 rounded-md text-sm'>
@@ -239,12 +255,12 @@ const SellerRegistration = () => {
 
                 {/* --- Action Buttons --- */}
                 <button
-                    type="button" // <-- Add this line here
+                    type="button"
                     onClick={verifyAcct}
-                    disabled={isVerifying || !formData.acct_no || !selectedBank}
-                    className={`w-full py-2 px-4 rounded-md font-semibold transition-colors ${isVerifying || !formData.acct_no || !selectedBank
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                    disabled={isVerifying || !formData.account_no || !selectedBank}
+                    className={`w-full py-2 px-4 rounded-md font-semibold transition-colors ${isVerifying || !formData.account_no || !selectedBank
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
                         }`}
                 >
                     {isVerifying ? 'Verifying Account...' : 'Verify Account'}
@@ -252,11 +268,13 @@ const SellerRegistration = () => {
 
                 <button
                     type="submit"
-                    // Optional: You might want to disable registration until the account is verified
-                    disabled={!accountName} 
-                    className='mt-2 w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors'
+                    disabled={!accountName || isSubmitting}
+                    className={`mt-2 w-full font-semibold py-2 px-4 rounded-md transition-colors ${!accountName || isSubmitting
+                            ? 'bg-blue-300 text-white cursor-not-allowed'
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
                 >
-                    Register Account
+                    {isSubmitting ? 'Registering...' : 'Register Account'}
                 </button>
             </form>
         </section>

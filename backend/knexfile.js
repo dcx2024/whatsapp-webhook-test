@@ -7,18 +7,17 @@ module.exports = {
 
   development: {
     client: 'pg',
-    /*connection: {
+    connection: {
       host:process.env.DB_HOST || 'localhost',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
       database: process.env.DB_NAME,
-      port:5432,
-      ssl: { rejectUnauthorized: false }
-    }*/
-    connection: {
+      port:5432
+    }
+   /* connection: {
       connectionString: process.env.DATABASE_URL,
       ssl: {rejectUnauthorized: false}
-    }
+    }*/
   },
 //test
   staging: {
