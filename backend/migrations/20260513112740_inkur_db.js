@@ -11,6 +11,7 @@ exports.up = async function(knex) {
         table.string('email').notNullable();
         table.string('transfer_recipient').notNullable();
         table.string('phone_no').notNullable();
+        table.string('password').notNullable();
         table.timestamp('created_at')
     })
 
@@ -20,7 +21,7 @@ exports.up = async function(knex) {
         table.string('payment_ref').notNullable;
         table.decimal('amount',10,2).defaultTo(0);
         table.string('otp_hash');
-        table.string('transfer_recipient');//add transfer reference under
+        table.string('transfer_recipient');//add transfer reference under 
         table.string('customer_phone_no').notNullable();
         table.string('status').notNullable().defaultTo('pending')
         table.timestamp(true,true)

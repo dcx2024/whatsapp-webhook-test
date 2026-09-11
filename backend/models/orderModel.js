@@ -16,6 +16,11 @@ const Order={
     async findByCustomerPhone(phone_no){
         const order = await db(TABLE).select('*').where('customer_phone_no',phone_no).first()
         return order
+    },
+
+    async recentOrdersBySeller(seller_id){
+        const order=await db(TABLE).select('*').where('seller_id', seller_id).limit(5);
+        return order
     }
 }
 

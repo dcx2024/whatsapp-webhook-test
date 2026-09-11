@@ -2,10 +2,11 @@ const { confirmAccount,
     createTransferRecipient } = require('../payment')
 const seller = require("../models/userModel")
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
 
 const userHandler = async (req, res) => {
     try {
-        const { full_name, business_name, account_no, email, phone_no, bank_code } = req.body;
+        const { full_name, business_name, account_no, email, phone_no, bank_code, password } = req.body;
 
         // 1. Always verify before proceeding
         /* const confirmed = await confirmAccount(process.env.PAYSTACK_SECRET_KEY, account_no, bank_code);
@@ -18,32 +19,36 @@ const userHandler = async (req, res) => {
         const transferRecipient = await createTransferRecipient(process.env.PAYSTACK_SECRET_KEY, params);
 
         if (transferRecipient.status === true) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+
+
             const newSeller = await seller.create({
                 full_name: transferRecipient.data.name,
                 seller_name: business_name,
                 transfer_recipient: transferRecipient.data.recipient_code,
                 email: email,
-                phone_no: phone_no
+                phone_no: phone_no,
+                password:hashedPassword
             })
-          
-
-             const token = jwt.sign({ sellerId: newSeller.id }, process.env.JWT_SECRET, { expiresIn: '1d' })
-        res.cookie('token', token, {
-            httpOnly: true, // Prevents hackers from stealing it via JavaScript
-            secure: process.env.NODE_ENV === 'production'
 
 
-           return res.status(200).json({
+            const token = jwt.sign({ sellerId: newSeller.id }, process.env.JWT_SECRET, { expiresIn: '1d' })
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production'
+            });
+
+            return res.status(200).json({
                 message: "Registration successful",
                 paystackData: transferRecipient.data
             });
-        });
-        }
 
-       
+        }
 
         throw new Error("Recipient creation failed");
     } catch (error) {
+        console.error("Registration error:", error);
         res.status(500).json({ message: error.message });
     }
 };

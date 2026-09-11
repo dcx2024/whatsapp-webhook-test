@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios')
+const cookieParser = require('cookie-parser');
 const whatsappRoutes = require('./routes/whatsappRoute');
 const { handleWebhook } = require('./verifyPayment'); // Import the webhook handler
 const paymentRoutes=require('./routes/paymentRoutes')
@@ -15,7 +16,7 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
-
+app.use(cookieParser())
 const port = process.env.PORT || 3000;
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }))
