@@ -71,7 +71,12 @@ const messageListener = async (req, res) => {
                         return await sendWhatsAppMessage(from, "Invalid Buyer format. Ensure it ends with Buyer:[phonenumber]");
                     }
 
-                    const phoneNumber = buyerSplit[1].trim();
+                    const rawPhoneNumber = buyerSplit[1].trim();
+                    let formattedCustomerNumber = rawPhoneNumber;
+                    if (formattedCustomerNumber.startsWith('0')) {
+                        // Replace the leading '0' with '234'
+                        formattedCustomerNumber = '234' + formattedCustomerNumber.substring(1);
+                    }
 
                     if (!price || isNaN(price)) {
                         return await sendWhatsAppMessage(from, "Invalid format. Use: /invoice [amount] [item]");
@@ -87,7 +92,13 @@ const messageListener = async (req, res) => {
                     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
                     const paymenturl = `${frontendUrl}/checkout?token=${paymentToken}`;
 
-                    await sendWhatsAppMessage(from, `Your invoice for ${item} is ready. Total: ₦${price}.cutomer.no:${phoneNumber} Pay here: ${paymenturl}`);
+                    const customerMessage = `Your invoice for ${item} is ready. Total: ₦${price}. Pay here: ${paymenturl}`;
+                    const senderMessage = `✅ Order created successfully!\n\nInvoice sent to: ${rawPhoneNumber}\n\nLink: ${paymenturl}`;
+
+                    await sendWhatsAppMessage(formattedCustomerNumber, customerMessage);
+
+                    // 2. Send a confirmation message back to the business owner/sender
+                    await sendWhatsAppMessage(from, senderMessage);
                 }
             }
         }
