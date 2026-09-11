@@ -21,7 +21,8 @@ exports.up = async function(knex) {
         table.string('payment_ref').notNullable;
         table.decimal('amount',10,2).defaultTo(0);
         table.string('otp_hash');
-        table.string('transfer_recipient');//add transfer reference under 
+        table.string('transfer_recipient');
+   table.string('seller_id').notNullable()
         table.string('customer_phone_no').notNullable();
         table.string('status').notNullable().defaultTo('pending')
         table.timestamp(true,true)
