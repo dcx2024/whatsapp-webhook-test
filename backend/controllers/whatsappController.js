@@ -2,6 +2,8 @@ const crypto = require('node:crypto');
 const jwt = require('jsonwebtoken');
 const axios = require('axios'); // Added missing import
 require('dotenv').config();
+const order = require('../models/orderModel')
+
 
 const { initializeTransaction } = require('../payment');
 
@@ -87,6 +89,14 @@ const messageListener = async (req, res) => {
                         item: item,
                         whatsapp_number: from
                     }, JWT_SECRET, { expiresIn: '30m' });
+
+                    const newOrder=order.create({
+                        amount:price,
+                        item:item,
+                        customer_phone_no:formattedCustomerNumber,
+                        status:'pending',
+                        
+                    })
 
                     // Use FRONTEND_URL from env, fallback to localhost for dev
                     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";

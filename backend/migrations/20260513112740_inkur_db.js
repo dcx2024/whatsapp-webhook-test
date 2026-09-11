@@ -20,6 +20,7 @@ exports.up = async function(knex) {
         table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
         table.string('payment_ref').notNullable;
         table.decimal('amount',10,2).defaultTo(0);
+        table.string('item');
         table.string('otp_hash');
         table.string('transfer_recipient');
    table.string('seller_id').notNullable()
