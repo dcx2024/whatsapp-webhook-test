@@ -49,14 +49,29 @@ const messageListener = async (req, res) => {
             const entry = body.entry?.[0]?.changes?.[0]?.value;
             const message = entry?.messages?.[0];
             const from = message?.from;
-                console.log(from)
+            console.log(from)
             if (message?.type === 'text') {
                 const userText = message.text.body.trim();
 
-                if (userText.startsWith('/invoice')) {
-                    const parts = userText.split(' ');
-                    const price = parts[1];
-                    const item = parts.slice(2).join(' ') || "Product";
+                if (userText.startsWith('create order:')) {
+                    const payload = userText.substring(13).trim();
+                    const parts = payload.split(',');
+
+                    if (parts.length < 3) {
+                        return await sendWhatsAppMessage(from, "Invalid format. Use: create order:[item],price,Buyer:[phonenumber]");
+                    }
+
+                    const item = parts[0].trim();
+                    const price = parts[1].trim();
+                    const buyerPart = parts[2].trim();
+
+                    const buyerSplit = buyerPart.split(':')
+
+                    if (buyerSplit.length !== 2 || buyerSplit[0].toLowerCase() !== 'buyer') {
+                        return await sendWhatsAppMessage(from, "Invalid Buyer format. Ensure it ends with Buyer:[phonenumber]");
+                    }
+
+                    const phoneNumber = buyerSplit[1].trim();
 
                     if (!price || isNaN(price)) {
                         return await sendWhatsAppMessage(from, "Invalid format. Use: /invoice [amount] [item]");
@@ -65,14 +80,14 @@ const messageListener = async (req, res) => {
                     const paymentToken = jwt.sign({
                         amount: price,
                         item: item,
-                        whatsapp_number: from 
+                        whatsapp_number: from
                     }, JWT_SECRET, { expiresIn: '30m' });
 
                     // Use FRONTEND_URL from env, fallback to localhost for dev
                     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
                     const paymenturl = `${frontendUrl}/checkout?token=${paymentToken}`;
 
-                    await sendWhatsAppMessage(from, `Your invoice for ${item} is ready. Total: ₦${price}. Pay here: ${paymenturl}`);
+                    await sendWhatsAppMessage(from, `Your invoice for ${item} is ready. Total: ₦${price}.cutomer.no:${phoneNumber} Pay here: ${paymenturl}`);
                 }
             }
         }

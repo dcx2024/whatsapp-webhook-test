@@ -19,7 +19,7 @@ const Order={
     },
 
     async recentOrdersBySeller(seller_id){
-        const order=await db(TABLE).select('*').where('seller_id', seller_id).limit(5);
+        const order=await db(TABLE).select('*').where('seller_id', seller_id).limit(5).orderBy('created_at','desc');
         return order
     }
 }
