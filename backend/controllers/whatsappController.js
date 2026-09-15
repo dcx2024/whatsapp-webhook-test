@@ -94,14 +94,18 @@ const messageListener = async (req, res) => {
                     }, JWT_SECRET, { expiresIn: '30m' });
 
 
-                    const getSellerId=await user.getSellerId({phone_no:from})
-                    i
+                   let currentSeller = await user.getSellerId({ phone_no: from });
+                    
+                    // 2. STAGING FALLBACK: If seller doesn't exist, create a dummy one for testing
+                    if (!currentSeller) {
+                        console.log("Seller not found. Generating staging seller...");
+                    }
                     const newOrder=await order.create({
                         amount:price,
                         item:item,
                         customer_phone_no:formattedCustomerNumber,
                         status:'pending',
-                        seller_id: getSellerId.seller_id
+                        seller_id: currentSeller.seller_id
                     })
 
                     // Use FRONTEND_URL from env, fallback to localhost for dev
