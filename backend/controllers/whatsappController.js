@@ -21,6 +21,50 @@ const whatsappChallenge = async (req, res) => {
     return res.status(403).end();
 };
 
+
+async function sendWhatsAppURLButton(to, bodyText, buttonText, buttonUrl) {
+    try {
+        await axios({
+            method: "POST",
+            url: `https://graph.facebook.com/v18.0/${process.env.PHONE_NUMBER_ID}/messages`, 
+            data: {
+                messaging_product: "whatsapp",
+                to: to,
+                type: "interactive",
+                interactive: {
+                    type: "cta_url",
+                    // 1. ADD A HEADER (Bold text at the top)
+                    header: {
+                        type: "text",
+                        text: "🧾 Payment Invoice" 
+                    },
+                    // 2. YOUR MAIN TEXT
+                    body: {
+                        text: bodyText
+                    },
+                    // 3. ADD A FOOTER (Small grey text at the bottom)
+                    footer: {
+                        text: "Secure payment powered by your app"
+                    },
+                    // 4. THE BUTTON
+                    action: {
+                        name: "cta_url",
+                        parameters: {
+                            display_text: buttonText,
+                            url: buttonUrl
+                        }
+                    }
+                }
+            },
+            headers: {
+                Authorization: `Bearer ${process.env.WHATSAPP_SECRET}`,
+                "Content-Type": "application/json",
+            },
+        });
+    } catch (err) {
+        console.error("WhatsApp Send Button Error:", err.response?.data || err.message);
+    }
+}
 async function sendWhatsAppMessage(to, text) {
     try {
         await axios({
@@ -118,7 +162,7 @@ const messageListener = async (req, res) => {
                     const customerMessage = `Your invoice for ${item} is ready. Total: ₦${price}. Pay here: ${paymenturl}`;
                     const senderMessage = `✅ Order created successfully!\n\nItems: ${item}\nInvoice sent to: ${rawPhoneNumber}\n\nLink: ${paymenturl}`;
 
-                    await sendWhatsAppMessage(formattedCustomerNumber, customerMessage);
+                    await sendWhatsAppURLButton(formattedCustomerNumber, customerMessage, "Pay Now", paymenturl);
                     await sendWhatsAppMessage(from, senderMessage);
                 }
             }
