@@ -19,7 +19,7 @@ const SellerRegistration = () => {
 
     // Fetch banks on component mount
     useEffect(() => {
-        fetch('http://localhost:3000/api/payment/fetchbanks')
+        fetch('https://whatsapp-webhook-test-mdwi.onrender.com/api/payment/fetchbanks')
             .then((response) => response.json())
             .then((data) => {
                 setBanks(data.banks);
@@ -63,7 +63,7 @@ const SellerRegistration = () => {
         console.log("Submitting seller data:", finalSubmissionData);
 
         try {
-            const response = await fetch('http://localhost:3000/api/seller/register-seller', { // Adjust endpoint as needed
+            const response = await fetch('https://whatsapp-webhook-test-mdwi.onrender.com/api/seller/register-seller', { // Adjust endpoint as needed
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -97,7 +97,7 @@ const SellerRegistration = () => {
         setAccountName('');
 
         try {
-            const response = await fetch('http://localhost:3000/api/payment/verifyAccount', {
+            const response = await fetch('https://whatsapp-webhook-test-mdwi.onrender.com/api/payment/verifyAccount', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
