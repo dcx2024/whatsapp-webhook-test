@@ -127,7 +127,7 @@ const messageListener = async (req, res) => {
                     const rawPhoneNumber = buyerSplit[1].trim();
                     let formattedCustomerNumber = rawPhoneNumber;
                     if (formattedCustomerNumber.startsWith('0')) {
-                        formattedCustomerNumber = '234' + formattedCustomerNumber.substring(1);
+                        formattedCustomerNumber = '1' + formattedCustomerNumber.substring(1);
                     }
 
                     if (!price || isNaN(price)) {
