@@ -11,6 +11,11 @@ const Seller={
     async getTransferRecipientCode(phone_no){
         const recipientcode=await db(TABLE).select('transfer_recipient').where({phone_no})
         return recipientcode
+    },
+
+    async getSellerId(phone_no){
+        const seller_id=await db(TABLE).select('seller_id').where({phone_no})
+        return seller_id
     }
 }
 

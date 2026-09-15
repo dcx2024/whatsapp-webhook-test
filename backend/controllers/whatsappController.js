@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const axios = require('axios'); // Added missing import
 require('dotenv').config();
 const order = require('../models/orderModel')
+const user=require('../models/userModel')
 
 
 const { initializeTransaction } = require('../payment');
@@ -92,12 +93,15 @@ const messageListener = async (req, res) => {
                         whatsapp_number: from
                     }, JWT_SECRET, { expiresIn: '30m' });
 
-                    const newOrder=order.create({
+
+                    const getSellerId=await user.getSellerId({phone_no:from})
+                    i
+                    const newOrder=await order.create({
                         amount:price,
                         item:item,
                         customer_phone_no:formattedCustomerNumber,
                         status:'pending',
-
+                        seller_id: getSellerId.seller_id
                     })
 
                     // Use FRONTEND_URL from env, fallback to localhost for dev
