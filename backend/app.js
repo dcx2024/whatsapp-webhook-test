@@ -10,7 +10,7 @@ const otproutes=require('./routes/otpRoutes')
 const userRoute=require('./routes/userRoute')
 const app = express();
 app.use(cors({
-    origin: 'http://localhost:5173', // Your React App's Origin
+    origin: 'https://whatsapp-webhook-test-frontend.onrender.com', // Your React App's Origin
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning'],
     credentials: true

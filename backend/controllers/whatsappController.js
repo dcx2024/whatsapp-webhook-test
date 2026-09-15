@@ -46,6 +46,8 @@ const messageListener = async (req, res) => {
 
     try {
         const body = req.body;
+//Get the seller id from the seller phone number(from)
+//use the staging database to create a seller so i can test with it for in a live scenario
 
         if (body.object === 'whatsapp_business_account') {
             const entry = body.entry?.[0]?.changes?.[0]?.value;
@@ -95,7 +97,7 @@ const messageListener = async (req, res) => {
                         item:item,
                         customer_phone_no:formattedCustomerNumber,
                         status:'pending',
-                        
+
                     })
 
                     // Use FRONTEND_URL from env, fallback to localhost for dev
