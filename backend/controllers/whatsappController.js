@@ -94,7 +94,7 @@ const messageListener = async (req, res) => {
                     }, JWT_SECRET, { expiresIn: '30m' });
 
 
-                   let currentSeller = await user.getSellerId({ phone_no: from });
+                   let currentSeller = await user.getSellerId(from);
                     
                     // 2. STAGING FALLBACK: If seller doesn't exist, create a dummy one for testing
                     if (!currentSeller) {
