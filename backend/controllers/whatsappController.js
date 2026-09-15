@@ -105,7 +105,7 @@ const messageListener = async (req, res) => {
                         item:item,
                         customer_phone_no:formattedCustomerNumber,
                         status:'pending',
-                        seller_id: currentSeller.seller_id
+                        seller_id: currentSeller.id
                     })
 
                     // Use FRONTEND_URL from env, fallback to localhost for dev
