@@ -14,7 +14,7 @@ const Seller={
     },
 
     async getSellerId(phone_no){
-        const seller=await db(TABLE).select('seller_id')
+        const seller=await db(TABLE).select('id')
             .where({ phone_no })
             .first(); 
         return seller;
