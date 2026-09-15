@@ -266,10 +266,10 @@ const SellerRegistration = () => {
                 >
                     {isVerifying ? 'Verifying Account...' : 'Verify Account'}
                 </button>
-
+{/*add the disabled for !accountName*/}
                 <button
                     type="submit"
-                    disabled={!accountName || isSubmitting}
+                    disabled={isSubmitting}
                     className={`mt-2 w-full font-semibold py-2 px-4 rounded-md transition-colors ${!accountName || isSubmitting
                             ? 'bg-blue-300 text-white cursor-not-allowed'
                             : 'bg-blue-600 text-white hover:bg-blue-700'
