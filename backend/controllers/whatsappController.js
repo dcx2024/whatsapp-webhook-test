@@ -47,44 +47,47 @@ const messageListener = async (req, res) => {
 
     try {
         const body = req.body;
-//Get the seller id from the seller phone number(from)
-//use the staging database to create a seller so i can test with it for in a live scenario
 
         if (body.object === 'whatsapp_business_account') {
             const entry = body.entry?.[0]?.changes?.[0]?.value;
             const message = entry?.messages?.[0];
             const from = message?.from;
-            console.log(from)
+            console.log(from);
+            
             if (message?.type === 'text') {
                 const userText = message.text.body.trim();
 
-                if (userText.startsWith('create order:')) {
+                if (userText.toLowerCase().startsWith('create order:')) {
+                    // Extract everything after "create order:"
                     const payload = userText.substring(13).trim();
                     const parts = payload.split(',');
 
+                    // We need at least 1 item, 1 price, and 1 buyer (minimum 3 parts)
                     if (parts.length < 3) {
-                        return await sendWhatsAppMessage(from, "Invalid format. Use: create order:[item],price,Buyer:[phonenumber]");
+                        return await sendWhatsAppMessage(from, "Invalid format. Use: create order: item1, item2, total_price, Buyer:phonenumber");
                     }
 
-                    const item = parts[0].trim();
-                    const price = parts[1].trim();
-                    const buyerPart = parts[2].trim();
+                    // Extract from the END of the array
+                    const buyerPart = parts.pop().trim(); // Gets the last item (Buyer:phone)
+                    const price = parts.pop().trim();     // Gets the second to last item (Price)
+                    
+                    // Everything left in the array is the items. Join them back with commas.
+                    const item = parts.join(', ').trim(); 
 
-                    const buyerSplit = buyerPart.split(':')
+                    const buyerSplit = buyerPart.split(':');
 
-                    if (buyerSplit.length !== 2 || buyerSplit[0].toLowerCase() !== 'buyer') {
-                        return await sendWhatsAppMessage(from, "Invalid Buyer format. Ensure it ends with Buyer:[phonenumber]");
+                    if (buyerSplit.length !== 2 || buyerSplit[0].toLowerCase().trim() !== 'buyer') {
+                        return await sendWhatsAppMessage(from, "Invalid Buyer format. Ensure it ends with, Buyer:[phonenumber]");
                     }
 
                     const rawPhoneNumber = buyerSplit[1].trim();
                     let formattedCustomerNumber = rawPhoneNumber;
                     if (formattedCustomerNumber.startsWith('0')) {
-                        // Replace the leading '0' with '234'
                         formattedCustomerNumber = '234' + formattedCustomerNumber.substring(1);
                     }
 
                     if (!price || isNaN(price)) {
-                        return await sendWhatsAppMessage(from, "Invalid format. Use: /invoice [amount] [item]");
+                        return await sendWhatsAppMessage(from, "Invalid format. Price must be a valid number.");
                     }
 
                     const paymentToken = jwt.sign({
@@ -93,31 +96,29 @@ const messageListener = async (req, res) => {
                         whatsapp_number: from
                     }, JWT_SECRET, { expiresIn: '30m' });
 
-
-                   let currentSeller = await user.getSellerId(from);
+                    let currentSeller = await user.getSellerId(from);
                     
-                    // 2. STAGING FALLBACK: If seller doesn't exist, create a dummy one for testing
+                    // CRITICAL: You must 'return' here to stop execution if the seller is not found.
                     if (!currentSeller) {
-                        console.log("Seller not found. Generating staging seller...");
+                        console.log("Seller not found. Cannot create order.");
+                        return await sendWhatsAppMessage(from, "Your phone number is not registered as a seller. Please register first.");
                     }
-                    const newOrder=await order.create({
-                        amount:price,
-                        item:item,
-                        customer_phone_no:formattedCustomerNumber,
-                        status:'pending',
+                    
+                    const newOrder = await order.create({
+                        amount: price,
+                        item: item, // This will now save as "ps5, fifa 24, extra controller"
+                        customer_phone_no: formattedCustomerNumber,
+                        status: 'pending',
                         seller_id: currentSeller.id
-                    })
+                    });
 
-                    // Use FRONTEND_URL from env, fallback to localhost for dev
                     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
                     const paymenturl = `${frontendUrl}/checkout?token=${paymentToken}`;
 
                     const customerMessage = `Your invoice for ${item} is ready. Total: ₦${price}. Pay here: ${paymenturl}`;
-                    const senderMessage = `✅ Order created successfully!\n\nInvoice sent to: ${rawPhoneNumber}\n\nLink: ${paymenturl}`;
+                    const senderMessage = `✅ Order created successfully!\n\nItems: ${item}\nInvoice sent to: ${rawPhoneNumber}\n\nLink: ${paymenturl}`;
 
                     await sendWhatsAppMessage(formattedCustomerNumber, customerMessage);
-
-                    // 2. Send a confirmation message back to the business owner/sender
                     await sendWhatsAppMessage(from, senderMessage);
                 }
             }
