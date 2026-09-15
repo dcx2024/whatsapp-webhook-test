@@ -159,7 +159,7 @@ const messageListener = async (req, res) => {
                     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
                     const paymenturl = `${frontendUrl}/checkout?token=${paymentToken}`;
 
-                    const customerMessage = `Your invoice for ${item} is ready. Total: ₦${price}. Pay here: ${paymenturl}`;
+                    const customerMessage = `Your invoice for ${item} is ready. Total: ₦${price}. Click the link to Pay:`;
                     const senderMessage = `✅ Order created successfully!\n\nItems: ${item}\nInvoice sent to: ${rawPhoneNumber}\n\nLink: ${paymenturl}`;
 
                     await sendWhatsAppURLButton(formattedCustomerNumber, customerMessage, "Pay Now", paymenturl);
