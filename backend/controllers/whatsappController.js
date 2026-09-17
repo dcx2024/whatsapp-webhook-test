@@ -153,7 +153,8 @@ const messageListener = async (req, res) => {
                         item: item, // This will now save as "ps5, fifa 24, extra controller"
                         customer_phone_no: formattedCustomerNumber,
                         status: 'pending',
-                        seller_id: currentSeller.id
+                        seller_id: currentSeller.id,
+                         transfer_recipient:currentSeller.transfer_recipient
                     });
 
                     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
