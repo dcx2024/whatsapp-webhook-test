@@ -50,6 +50,7 @@ const initialisePayment = async (req, res) => {
         const secretKey = process.env.PAYSTACK_SECRET_KEY;
         const paystackres = await initializeTransaction(secretKey, param)
 
+        //Return the payment link(authorization_url) and update the order status to 'paid'
         if (paystackres.status) {
             const newOrder =await order.create({
                 payment_ref: paystackres.data.reference,

@@ -3,13 +3,17 @@ const jwt = require('jsonwebtoken');
 const axios = require('axios'); // Added missing import
 require('dotenv').config();
 const order = require('../models/orderModel')
-const user=require('../models/userModel')
+const user = require('../models/userModel')
+const bcrypt=require('bcrypt')
+
+
 
 
 const { initializeTransaction } = require('../payment');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
+const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
 const whatsappChallenge = async (req, res) => {
     const { 'hub.mode': mode, 'hub.challenge': challenge, 'hub.verify_token': token } = req.query;
@@ -26,7 +30,7 @@ async function sendWhatsAppURLButton(to, bodyText, buttonText, buttonUrl) {
     try {
         await axios({
             method: "POST",
-            url: `https://graph.facebook.com/v18.0/${process.env.PHONE_NUMBER_ID}/messages`, 
+            url: `https://graph.facebook.com/v18.0/${process.env.PHONE_NUMBER_ID}/messages`,
             data: {
                 messaging_product: "whatsapp",
                 to: to,
@@ -36,7 +40,7 @@ async function sendWhatsAppURLButton(to, bodyText, buttonText, buttonUrl) {
                     // 1. ADD A HEADER (Bold text at the top)
                     header: {
                         type: "text",
-                        text: "🧾 Payment Invoice" 
+                        text: "🧾 Payment Invoice"
                     },
                     // 2. YOUR MAIN TEXT
                     body: {
@@ -85,6 +89,10 @@ async function sendWhatsAppMessage(to, text) {
     }
 }
 
+function generateOTP() {
+    return crypto.randomInt(100000, 999999).toString();
+}
+
 const messageListener = async (req, res) => {
     // Send 200 immediately to prevent Meta timeouts
     res.sendStatus(200);
@@ -97,7 +105,7 @@ const messageListener = async (req, res) => {
             const message = entry?.messages?.[0];
             const from = message?.from;
             console.log(from);
-            
+
             if (message?.type === 'text') {
                 const userText = message.text.body.trim();
 
@@ -114,9 +122,9 @@ const messageListener = async (req, res) => {
                     // Extract from the END of the array
                     const buyerPart = parts.pop().trim(); // Gets the last item (Buyer:phone)
                     const price = parts.pop().trim();     // Gets the second to last item (Price)
-                    
+
                     // Everything left in the array is the items. Join them back with commas.
-                    const item = parts.join(', ').trim(); 
+                    const item = parts.join(', ').trim();
 
                     const buyerSplit = buyerPart.split(':');
 
@@ -134,38 +142,58 @@ const messageListener = async (req, res) => {
                         return await sendWhatsAppMessage(from, "Invalid format. Price must be a valid number.");
                     }
 
-                    const paymentToken = jwt.sign({
-                        amount: price,
-                        item: item,
-                        whatsapp_number: from
-                    }, JWT_SECRET, { expiresIn: '30m' });
-
+                   // 1. Verify seller exists
                     let currentSeller = await user.getSellerId(from);
-                    
-                    // CRITICAL: You must 'return' here to stop execution if the seller is not found.
                     if (!currentSeller) {
-                        console.log("Seller not found. Cannot create order.");
                         return await sendWhatsAppMessage(from, "Your phone number is not registered as a seller. Please register first.");
                     }
+
+                    // 2. Generate OTP and hash it for delivery confirmation
+                    const otp = generateOTP();
+                    const otp_hash = await bcrypt.hash(otp, 10);
+
+                    // 3. Initialize Paystack Transaction directly
+                    // Paystack requires an email. If the buyer doesn't provide one, use a placeholder.
+                    const dummyEmail = `buyer_${formattedCustomerNumber}@guest.local`;
                     
+                    const paystackParams = {
+                        email: dummyEmail,
+                        amount: parseFloat(price) * 100, // Convert to kobo/cents
+                        metadata: {
+                            item_name: item,
+                            whatsapp_number: from,
+                            customer_phone: formattedCustomerNumber,
+                            otp_code: otp // You can send this via SMS/WhatsApp to the buyer later
+                        }
+                    };
+
+                    const paystackRes = await initializeTransaction(PAYSTACK_SECRET_KEY, paystackParams);
+
+                    if (!paystackRes.status) {
+                        console.error("Paystack Init Error:", paystackRes);
+                        return await sendWhatsAppMessage(from, "❌ Failed to generate payment link. Please try again later.");
+                    }
+
+                    // 4. Save order to the database with the Paystack reference
                     const newOrder = await order.create({
-                        amount: price,
-                        item: item, // This will now save as "ps5, fifa 24, extra controller"
+                        payment_ref: paystackRes.data.reference,
+                        amount: parseFloat(price),
+                        item: item,
                         customer_phone_no: formattedCustomerNumber,
+                        otp_hash: otp_hash,
                         status: 'pending',
                         seller_id: currentSeller.id,
-                         transfer_recipient:currentSeller.transfer_recipient
+                        transfer_recipient: currentSeller.transfer_recipient
                     });
 
-                    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-                    const paymenturl = `${frontendUrl}/checkout?token=${paymentToken}`;
+                    // 5. Send direct Paystack URL to the buyer and confirmation to the seller
+                    const paymenturl = paystackRes.data.authorization_url;
 
                     const customerMessage = `Your invoice for ${item} is ready. Total: ₦${price}. Click the link to Pay:`;
                     const senderMessage = `✅ Order created successfully!\n\nItems: ${item}\nInvoice sent to: ${rawPhoneNumber}\n\nLink: ${paymenturl}`;
 
                     await sendWhatsAppURLButton(formattedCustomerNumber, customerMessage, "Pay Now", paymenturl);
-                    await sendWhatsAppMessage(from, senderMessage);
-                }
+                    await sendWhatsAppMessage(from, senderMessage);                }
             }
         }
     } catch (error) {
