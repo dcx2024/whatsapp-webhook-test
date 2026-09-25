@@ -154,7 +154,7 @@ const messageListener = async (req, res) => {
 
                     // 3. Initialize Paystack Transaction directly
                     // Paystack requires an email. If the buyer doesn't provide one, use a placeholder.
-                    const dummyEmail = `buyer_${formattedCustomerNumber}@guest.local`;
+                    const dummyEmail = `buyer_${formattedCustomerNumber}@gmail.com`;
                     
                     const paystackParams = {
                         email: dummyEmail,
